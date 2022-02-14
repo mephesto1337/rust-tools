@@ -1,2 +1,6 @@
 [workspace]
 members = ["need-restart", "refresh-cache"]
+
+[profile.release-sym]
+inherits = "release"
+debug = true
