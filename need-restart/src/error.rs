@@ -13,6 +13,9 @@ pub enum Error {
 
     /// Standard I/O error
     IO(io::Error),
+
+    /// Invalid CLI argument
+    InvalidArgument(String),
 }
 
 impl From<io::Error> for Error {
@@ -36,6 +39,7 @@ impl fmt::Display for Error {
             Self::NonExistantProcess(pid) => write!(f, "Non existing pid {}", pid),
             Self::NoExecutableFile(pid) => write!(f, "No executable file for pid {}", pid),
             Self::IO(ref e) => fmt::Display::fmt(e, f),
+            Self::InvalidArgument(ref arg) => write!(f, "Invalid command line argument {:?}", arg),
         }
     }
 }

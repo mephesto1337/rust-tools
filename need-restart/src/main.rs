@@ -20,7 +20,7 @@ fn usage() {
     println!("  -q, --quiet : enables quiet mode.");
 }
 
-fn main() -> Result<()> {
+fn err_main() -> Result<()> {
     let mut quiet = false;
 
     if let Some(first_arg) = std::env::args().skip(1).next() {
@@ -31,7 +31,7 @@ fn main() -> Result<()> {
             return Ok(());
         } else {
             usage();
-            panic!("Invalid command line argument {}", first_arg);
+            return Err(Error::InvalidArgument(first_arg));
         }
     }
     let processes = Process::all()?;
@@ -51,4 +51,14 @@ fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn main() -> ! {
+    let code = if let Err(e) = err_main() {
+        eprintln!("ERROR: {}", e);
+        1
+    } else {
+        0
+    };
+    std::process::exit(code);
 }
