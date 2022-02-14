@@ -1,2 +1,2 @@
 [workspace]
-members = ["need-restart"]
+members = ["need-restart", "refresh-cache"]
