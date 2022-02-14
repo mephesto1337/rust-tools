@@ -1,5 +1,5 @@
 [workspace]
-members = ["need-restart", "refresh-cache"]
+members = ["need-restart", "refresh-cache", "short-path"]
 
 [profile.release-sym]
 inherits = "release"
