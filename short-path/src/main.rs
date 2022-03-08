@@ -3,14 +3,15 @@ use std::fs::DirEntry;
 use std::io;
 use std::path::{Path, PathBuf};
 
-fn get_shortest<'p, I>(collection: &'_ [I], prefix: &'p str) -> &'p str
+fn get_shortest<'p, I, F>(collection: &'_ [I], prefix: &'p str, match_prefix: F) -> &'p str
 where
     I: AsRef<str> + std::fmt::Debug,
+    F: Fn(&str, &str) -> bool,
 {
     for size in 1..prefix.len() {
         if collection
             .iter()
-            .filter(|e| e.as_ref().starts_with(&prefix[..size]))
+            .filter(|e| match_prefix(e.as_ref(), &prefix[..size]))
             .count()
             == 1
         {
@@ -36,8 +37,18 @@ fn dir_entries<P: AsRef<Path>>(path: P) -> io::Result<Vec<String>> {
 }
 
 fn main() -> io::Result<()> {
+    let mut ignore_case = false;
+
     let cwd = env::current_dir()?;
     assert!(cwd.is_absolute());
+
+    if let Some(first) = env::args().skip(1).next() {
+        if first == "-i" || first == "--ignore-case" {
+            ignore_case = true;
+        } else {
+            eprintln!("Invalid argument {:?}", first);
+        }
+    }
 
     let cur = match cwd.file_name() {
         Some(cur) => cur,
@@ -58,7 +69,17 @@ fn main() -> io::Result<()> {
             }
         };
         let entries = dir_entries(component.parent().unwrap())?;
-        let shortest = get_shortest(&entries[..], prefix);
+        let shortest = if ignore_case {
+            get_shortest(&entries[..], prefix, |entry, p| {
+                if entry.len() < p.len() {
+                    false
+                } else {
+                    entry[..p.len()].eq_ignore_ascii_case(p)
+                }
+            })
+        } else {
+            get_shortest(&entries[..], prefix, |entry, p| entry.starts_with(p))
+        };
         path = PathBuf::from(shortest).join(path);
     }
 
