@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "decoder",
     "need-reboot",
     "need-restart",
     "refresh-cache",
