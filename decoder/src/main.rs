@@ -63,6 +63,21 @@ fn main() -> codecs::Result<()> {
                 Mode::Encode
             } else if m == "-d" || m == "--decode" {
                 Mode::Decode
+            } else if m == "-h" || m == "--help" {
+                eprintln!("Usage:");
+                eprintln!(
+                    "  {} [[-e | -d] CODECS] [INPUT]\n",
+                    env::args().next().unwrap()
+                );
+                eprintln!("Options:");
+                eprintln!("  -e, --encode CODECS: encode input with the specified codecs (comma separated)");
+                eprintln!("  -d, --decode CODECS: decode input with the specified codecs (comma separated)");
+                eprintln!("  -h, --help: show this message and exit");
+                eprintln!("  -l, --list: list available codecs\n");
+                eprintln!("By default, if neither -e or -d is specified, 'auto-recurse' codec in decode mode is used");
+                eprintln!("If INPUT is not specified, it is read from STDIN");
+
+                return Ok(());
             } else if m == "-l" || m == "--list" {
                 eprintln!("Available plugins:");
                 for p in get_available_plugins() {
