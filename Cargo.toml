@@ -3,7 +3,7 @@ members = [
     "decoder",
     "need-reboot",
     "need-restart",
-    "refresh-cache",
+    "squid-search",
     "short-path",
 ]
 
