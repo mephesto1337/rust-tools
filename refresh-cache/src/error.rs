@@ -4,7 +4,7 @@ use std::num::ParseIntError;
 #[derive(Debug)]
 pub enum Error {
     MissingField(&'static str),
-    ParseIntError(ParseIntError),
+    ParseInt(ParseIntError),
     Io(io::Error),
 }
 
@@ -16,6 +16,6 @@ impl From<io::Error> for Error {
 
 impl From<ParseIntError> for Error {
     fn from(e: ParseIntError) -> Self {
-        Self::ParseIntError(e)
+        Self::ParseInt(e)
     }
 }

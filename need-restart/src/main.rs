@@ -14,7 +14,7 @@ fn usage() {
     println!("Usages:");
     println!("  {} -h | --help", &prog);
     println!("  {} [-q | --quiet]", &prog);
-    println!("");
+    println!();
     println!("Options:");
     println!("  -h, --help  : displays this message and exits.");
     println!("  -q, --quiet : enables quiet mode.");
@@ -23,7 +23,7 @@ fn usage() {
 fn err_main() -> Result<()> {
     let mut quiet = false;
 
-    if let Some(first_arg) = std::env::args().skip(1).next() {
+    if let Some(first_arg) = std::env::args().nth(1) {
         if first_arg == "-q" || first_arg == "--quiet" {
             quiet = true;
         } else if first_arg == "-h" || first_arg == "--help" {

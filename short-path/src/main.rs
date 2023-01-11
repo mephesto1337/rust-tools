@@ -18,7 +18,7 @@ where
             return &prefix[..size];
         }
     }
-    return prefix;
+    prefix
 }
 
 fn dirname(entry: DirEntry) -> String {
@@ -42,7 +42,7 @@ fn main() -> io::Result<()> {
     let cwd = env::current_dir()?;
     assert!(cwd.is_absolute());
 
-    if let Some(first) = env::args().skip(1).next() {
+    if let Some(first) = env::args().nth(1) {
         if first == "-i" || first == "--ignore-case" {
             ignore_case = true;
         } else {

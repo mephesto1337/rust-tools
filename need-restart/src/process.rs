@@ -13,7 +13,7 @@ pub enum FileState {
     Deleted,
 }
 
-const DELETED_FILE_SUFFIX: &'static str = " (deleted)";
+const DELETED_FILE_SUFFIX: &str = " (deleted)";
 
 /// A running process
 #[derive(Debug)]
@@ -100,16 +100,14 @@ impl Process {
 
         if buffer.is_empty() {
             None
-        } else {
-            if let Some(filename) = buffer.strip_suffix(DELETED_FILE_SUFFIX) {
-                if fs::metadata(filename).is_ok() {
-                    Some((filename, FileState::Deleted))
-                } else {
-                    None
-                }
+        } else if let Some(filename) = buffer.strip_suffix(DELETED_FILE_SUFFIX) {
+            if fs::metadata(filename).is_ok() {
+                Some((filename, FileState::Deleted))
             } else {
-                Some((buffer, FileState::Present))
+                None
             }
+        } else {
+            Some((buffer, FileState::Present))
         }
     }
 

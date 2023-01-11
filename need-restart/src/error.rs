@@ -26,10 +26,7 @@ impl From<io::Error> for Error {
 
 impl Error {
     pub fn is_not_found(&self) -> bool {
-        match self {
-            Self::IO(ref e) if e.kind() == io::ErrorKind::NotFound => true,
-            _ => false,
-        }
+        matches!(self, Self::IO(ref e) if e.kind() == io::ErrorKind::NotFound)
     }
 }
 

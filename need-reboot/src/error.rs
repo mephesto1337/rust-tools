@@ -91,12 +91,10 @@ impl fmt::Display for Error {
                     } else {
                         write!(f, "Process exited with code {}", code)
                     }
+                } else if let Some(msg) = error {
+                    write!(f, "Process exited with error: {}", msg)
                 } else {
-                    if let Some(msg) = error {
-                        write!(f, "Process exited with error: {}", msg)
-                    } else {
-                        f.write_str("Process exited with error")
-                    }
+                    f.write_str("Process exited with error")
                 }
             }
             Self::Integer(ref e) => fmt::Display::fmt(e, f),

@@ -34,12 +34,10 @@ impl fmt::Display for Version {
             } else {
                 write!(f, "{}.{}.{}", self.major, self.minor, release)
             }
+        } else if let Some(ref tag) = self.tag {
+            write!(f, "{}.{}-{}", self.major, self.minor, tag)
         } else {
-            if let Some(ref tag) = self.tag {
-                write!(f, "{}.{}-{}", self.major, self.minor, tag)
-            } else {
-                write!(f, "{}.{}", self.major, self.minor)
-            }
+            write!(f, "{}.{}", self.major, self.minor)
         }
     }
 }
