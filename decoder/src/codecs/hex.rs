@@ -2,6 +2,7 @@ use std::fmt::write;
 
 use crate::codecs::{Codec, CodecError, Result};
 
+#[derive(Default)]
 pub struct HexCodec;
 
 fn get_hex_value(high: u8, low: u8) -> Result<u8> {

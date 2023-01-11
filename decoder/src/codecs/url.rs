@@ -1,5 +1,6 @@
 use crate::codecs::{Codec, CodecError, Result};
 
+#[derive(Default)]
 pub struct UrlCodec;
 
 impl Codec for UrlCodec {

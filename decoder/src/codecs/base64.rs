@@ -6,6 +6,7 @@ use std::io::copy;
 
 use crate::codecs::{Codec, Result};
 
+#[derive(Default)]
 pub struct Base64StandardCodec;
 
 fn encode_into(
@@ -70,6 +71,7 @@ impl Codec for Base64StandardCodec {
     }
 }
 
+#[derive(Default)]
 pub struct Base64UrlCodec;
 
 impl Codec for Base64UrlCodec {

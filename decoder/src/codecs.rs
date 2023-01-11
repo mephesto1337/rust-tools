@@ -7,6 +7,7 @@ pub mod auto;
 pub mod base64;
 pub mod error;
 pub mod hex;
+pub mod rot;
 pub mod url;
 
 pub use error::{CodecError, Result};
@@ -59,12 +60,13 @@ pub fn get_available_plugins() -> &'static [Plugin] {
     let available_plugins_ptr = AVAILABLE_PLUGINS.load(Ordering::Relaxed);
     if available_plugins_ptr.is_null() {
         let plugins = Box::new(vec![
-            Box::new(hex::HexCodec) as Plugin,
-            Box::new(base64::Base64StandardCodec) as Plugin,
-            Box::new(base64::Base64UrlCodec) as Plugin,
-            Box::new(url::UrlCodec) as Plugin,
-            Box::new(auto::AutoCodec) as Plugin,
-            Box::new(auto::AutoRecurseCodec) as Plugin,
+            Box::<hex::HexCodec>::default() as Plugin,
+            Box::<base64::Base64StandardCodec>::default() as Plugin,
+            Box::<base64::Base64UrlCodec>::default() as Plugin,
+            Box::<url::UrlCodec>::default() as Plugin,
+            Box::<rot::RotCodec>::default() as Plugin,
+            Box::<auto::AutoCodec>::default() as Plugin,
+            Box::<auto::AutoRecurseCodec>::default() as Plugin,
         ]);
         AVAILABLE_PLUGINS.store(Box::into_raw(plugins), Ordering::Relaxed);
     }

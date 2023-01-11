@@ -1,5 +1,6 @@
 use crate::codecs::{get_available_plugins, Codec, CodecError, Result};
 
+#[derive(Default)]
 pub struct AutoCodec;
 
 impl Codec for AutoCodec {
@@ -37,6 +38,7 @@ impl Codec for AutoCodec {
     }
 }
 
+#[derive(Default)]
 pub struct AutoRecurseCodec;
 
 impl Codec for AutoRecurseCodec {
