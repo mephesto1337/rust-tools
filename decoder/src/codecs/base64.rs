@@ -99,3 +99,41 @@ impl Codec for Base64UrlCodec {
         ((size + 3) / 3) * 4
     }
 }
+
+#[derive(Default)]
+pub struct Base64AutoCodec;
+
+impl Codec for Base64AutoCodec {
+    fn name(&self) -> &'static str {
+        "base64-auto"
+    }
+
+    fn description(&self) -> &'static str {
+        "Tries both base64-urlsafe and base64-standard"
+    }
+
+    fn encode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
+        let std = Base64StandardCodec::default();
+        std.encode_into(data, output)
+    }
+
+    fn decode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
+        const STD_SPECIALS: &[u8] = &[b'/', b'=', b'+'];
+
+        if STD_SPECIALS.iter().any(|s| data.contains(s)) {
+            let std = Base64StandardCodec::default();
+            std.decode_into(data, output)
+        } else {
+            let url = Base64UrlCodec::default();
+            url.decode_into(data, output)
+        }
+    }
+
+    fn decoded_size_hint(&self, size: usize) -> usize {
+        (size / 4) * 3
+    }
+
+    fn encoded_size_hint(&self, size: usize) -> usize {
+        ((size + 3) / 3) * 4
+    }
+}

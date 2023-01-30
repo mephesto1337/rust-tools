@@ -63,6 +63,7 @@ pub fn get_available_plugins() -> &'static [Plugin] {
             Box::<hex::HexCodec>::default() as Plugin,
             Box::<base64::Base64StandardCodec>::default() as Plugin,
             Box::<base64::Base64UrlCodec>::default() as Plugin,
+            Box::<base64::Base64AutoCodec>::default() as Plugin,
             Box::<url::UrlCodec>::default() as Plugin,
             Box::<rot::RotCodec>::default() as Plugin,
             Box::<auto::AutoCodec>::default() as Plugin,
