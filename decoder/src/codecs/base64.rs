@@ -24,11 +24,6 @@ impl<R: Read> Read for StripWhitespacesReader<R> {
             // To optimize bounds checks
             assert!(n < buf.len() && i < n);
             while i < n {
-                eprintln!("\ni={i}, j={j}, n={n}");
-                eprintln!("{b:02x?}", b = &buf[..n]);
-                eprintln!(" {:skip_j$}j", "", skip_j = 4 * j);
-                eprintln!(" {:skip_i$}i", "", skip_i = 4 * i);
-
                 if let Some(next) = buf[i..]
                     .iter()
                     .enumerate()
