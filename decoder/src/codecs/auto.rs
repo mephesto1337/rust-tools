@@ -21,7 +21,7 @@ impl Codec for AutoCodec {
         let mut temp = Vec::new();
 
         for t in get_available_plugins() {
-            if t.name().starts_with("auto") {
+            if t.name().starts_with("auto") || t.name() == "rot" {
                 continue;
             }
 
