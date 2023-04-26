@@ -2,9 +2,53 @@ use base64::{
     alphabet::{STANDARD, URL_SAFE},
     engine::fast_portable::{FastPortable, NO_PAD, PAD},
 };
-use std::io::copy;
+use std::io::{self, copy, Read};
 
 use crate::codecs::{Codec, Result};
+
+struct StripWhitespacesReader<R> {
+    inner: R,
+}
+
+impl<R: Read> Read for StripWhitespacesReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        loop {
+            let n = self.inner.read(buf)?;
+            if n == 0 {
+                break Ok(0);
+            }
+
+            let mut i = 0;
+            let mut j = 0;
+
+            // To optimize bounds checks
+            assert!(n < buf.len() && i < n);
+            while i < n {
+                eprintln!("\ni={i}, j={j}, n={n}");
+                eprintln!("{b:02x?}", b = &buf[..n]);
+                eprintln!(" {:skip_j$}j", "", skip_j = 4 * j);
+                eprintln!(" {:skip_i$}i", "", skip_i = 4 * i);
+
+                if let Some(next) = buf[i..]
+                    .iter()
+                    .enumerate()
+                    .find_map(|(idx, b)| (!b.is_ascii_whitespace()).then_some(idx))
+                {
+                    buf[j] = buf[i + next];
+                    j += 1;
+                    i += next + 1;
+                } else {
+                    // No more bytes
+                    break;
+                }
+            }
+
+            if j > 0 {
+                break Ok(j);
+            }
+        }
+    }
+}
 
 #[derive(Default)]
 pub struct Base64StandardCodec;
@@ -23,7 +67,11 @@ fn encode_into(
     let mut encoder = base64::write::EncoderWriter::from(writer, &engine);
 
     let mut reader = data;
-    copy(&mut reader, &mut encoder)?;
+
+    copy(
+        &mut StripWhitespacesReader { inner: &mut reader },
+        &mut encoder,
+    )?;
     encoder.finish()?;
     Ok(())
 }
