@@ -38,8 +38,8 @@ impl<R: Read> Read for StripWhitespacesReader<R> {
                 }
             }
 
-            if j > 0 {
-                break Ok(j);
+            if j > 1 {
+                break Ok(j - 1);
             }
         }
     }
@@ -63,10 +63,7 @@ fn encode_into(
 
     let mut reader = data;
 
-    copy(
-        &mut StripWhitespacesReader { inner: &mut reader },
-        &mut encoder,
-    )?;
+    copy(&mut reader, &mut encoder)?;
     encoder.finish()?;
     Ok(())
 }
@@ -82,7 +79,10 @@ fn decode_into(
     } else {
         FastPortable::from(alphabet, NO_PAD)
     };
-    let mut reader = data;
+    let mut inner_reader = data;
+    let mut reader = StripWhitespacesReader {
+        inner: &mut inner_reader,
+    };
     let mut decoder = base64::read::DecoderReader::from(&mut reader, &engine);
     copy(&mut decoder, writer)?;
     Ok(())
@@ -178,5 +178,23 @@ impl Codec for Base64AutoCodec {
 
     fn encoded_size_hint(&self, size: usize) -> usize {
         ((size + 3) / 3) * 4
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn strip_whitespaces() {
+        let input = "Q29udGVudC1EaXNwb3NpdGlvbjogaW5saW5lOyBmaWxlbmFtZT0iaW1hZ2UwMDEuanBnQDAxRDhB\nQjFDLjI4QzQzMTkwLmRvY3MiOwo=\n";
+        let mut inner_reader = input.as_bytes();
+        let mut buffer = [0u8; 256];
+        let mut reader = StripWhitespacesReader {
+            inner: &mut inner_reader,
+        };
+
+        let n = reader.read(&mut buffer[..]).unwrap();
+        assert_eq!(std::str::from_utf8(&buffer[..n]).unwrap(), "Q29udGVudC1EaXNwb3NpdGlvbjogaW5saW5lOyBmaWxlbmFtZT0iaW1hZ2UwMDEuanBnQDAxRDhBQjFDLjI4QzQzMTkwLmRvY3MiOwo=");
     }
 }
