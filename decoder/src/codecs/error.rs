@@ -20,9 +20,6 @@ pub enum CodecError {
     /// Encounter non-ascii character
     NonAsciiChar(u8),
 
-    /// Invalid plugin prefix
-    InvalidPluginPrefix(String),
-
     /// Cannot find any codec that can decode Input
     NoCodecAvailable,
 }
@@ -38,9 +35,6 @@ impl fmt::Display for CodecError {
             CodecError::UTF8(ref e) => fmt::Display::fmt(e, f),
             CodecError::NonAsciiChar(ref b) => {
                 write!(f, "Encounter non-ascii character 0x{:02x}", b)
-            }
-            CodecError::InvalidPluginPrefix(ref s) => {
-                write!(f, "{:?} does not uniquely identifies a codec", s)
             }
             CodecError::NoCodecAvailable => f.write_str("Cannot find a suitable codec"),
         }

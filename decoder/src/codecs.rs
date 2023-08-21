@@ -12,6 +12,8 @@ pub mod url;
 
 pub use error::{CodecError, Result};
 
+pub type Plugin = Box<dyn Codec + 'static>;
+
 /// A Codec trait used to encode/decode
 pub trait Codec {
     /// Codec's name
@@ -25,6 +27,9 @@ pub trait Codec {
 
     /// Decode into specified buffer
     fn decode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()>;
+
+    /// Build another version of the codec with args
+    fn build(&self, args: &str) -> Option<Plugin>;
 
     /// Approximation decoded output size
     fn decoded_size_hint(&self, size: usize) -> usize {
@@ -50,8 +55,6 @@ pub trait Codec {
         Ok(decoded)
     }
 }
-
-pub type Plugin = Box<dyn Codec>;
 
 pub fn get_available_plugins() -> &'static [Plugin] {
     static AVAILABLE_PLUGINS: AtomicPtr<Vec<Plugin>> = AtomicPtr::new(ptr::null_mut());

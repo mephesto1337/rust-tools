@@ -1,6 +1,6 @@
 use crate::codecs::{get_available_plugins, Codec, CodecError, Result};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct AutoCodec;
 
 impl Codec for AutoCodec {
@@ -15,6 +15,11 @@ impl Codec for AutoCodec {
     fn encode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
         output.extend_from_slice(data);
         Ok(())
+    }
+
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
     }
 
     fn decode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
@@ -38,7 +43,7 @@ impl Codec for AutoCodec {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct AutoRecurseCodec;
 
 impl Codec for AutoRecurseCodec {
@@ -78,5 +83,10 @@ impl Codec for AutoRecurseCodec {
         }
         output.append(&mut next_input);
         Ok(())
+    }
+
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
     }
 }

@@ -45,7 +45,7 @@ impl<R: Read> Read for StripWhitespacesReader<R> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Base64StandardCodec;
 
 fn encode_into(
@@ -105,6 +105,11 @@ impl Codec for Base64StandardCodec {
         decode_into(data, output, &STANDARD, true)
     }
 
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
+    }
+
     fn decoded_size_hint(&self, size: usize) -> usize {
         (size / 4) * 3
     }
@@ -114,7 +119,7 @@ impl Codec for Base64StandardCodec {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Base64UrlCodec;
 
 impl Codec for Base64UrlCodec {
@@ -134,6 +139,11 @@ impl Codec for Base64UrlCodec {
         decode_into(data, output, &URL_SAFE, false)
     }
 
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
+    }
+
     fn decoded_size_hint(&self, size: usize) -> usize {
         (size / 4) * 3
     }
@@ -143,7 +153,7 @@ impl Codec for Base64UrlCodec {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Base64AutoCodec;
 
 impl Codec for Base64AutoCodec {
@@ -170,6 +180,11 @@ impl Codec for Base64AutoCodec {
             let url = Base64UrlCodec::default();
             url.decode_into(data, output)
         }
+    }
+
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
     }
 
     fn decoded_size_hint(&self, size: usize) -> usize {

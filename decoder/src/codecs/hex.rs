@@ -52,6 +52,11 @@ impl Codec for HexCodec {
         Ok(())
     }
 
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
+    }
+
     fn decoded_size_hint(&self, size: usize) -> usize {
         size / 2
     }

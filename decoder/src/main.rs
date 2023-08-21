@@ -1,25 +1,48 @@
-use std::{
-    env,
-    io::{self, Read, Write},
-};
+use std::io::{self, Read, Write};
+
+use clap::{Parser, ValueEnum};
 
 mod codecs;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, ValueEnum, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u32)]
 enum Mode {
     Encode,
     Decode,
 }
 
-use codecs::{get_available_plugins, Codec, CodecError, Plugin};
+#[derive(Debug, Parser)]
+struct Options {
+    /// Mode to operate on
+    #[arg(short, long, value_enum, default_value_t = Mode::Decode)]
+    mode: Mode,
 
-fn get_codec_by_prefix(prefix: &str) -> Option<&'static Plugin> {
+    /// List all available codecs
+    #[arg(short, long)]
+    list: bool,
+
+    /// List of codecs to apply in the form NAME[:ARGS]
+    #[arg(short, long)]
+    codecs: Vec<String>,
+
+    /// Input to operate on
+    input: Option<String>,
+}
+
+use codecs::{get_available_plugins, Codec, Plugin};
+
+fn get_codec_by_prefix(prefix: &str) -> Plugin {
+    let (prefix, args) = match prefix.split_once(':') {
+        Some((p, a)) => (p, a),
+        None => (prefix, ""),
+    };
+
     let plugins = get_available_plugins();
     let mut found_plugin = None;
     for codec in plugins {
         if codec.name().eq_ignore_ascii_case(prefix) {
-            return Some(codec);
+            found_plugin = Some(codec);
+            break;
         }
 
         let name = codec.name();
@@ -31,19 +54,29 @@ fn get_codec_by_prefix(prefix: &str) -> Option<&'static Plugin> {
                     found_plugin = Some(codec);
                 }
                 Some(p) => {
-                    eprintln!(
+                    panic!(
                         "{:?} can match both {} and {}",
                         prefix,
                         p.name(),
                         codec.name()
                     );
-                    return None;
                 }
             }
         }
     }
 
-    found_plugin
+    match found_plugin {
+        None => {
+            panic!("No plugin found with prefix {prefix:?}");
+        }
+        Some(p) => match p.build(args) {
+            None => panic!(
+                "Could not build plugin {name} with {args:?}",
+                name = p.name()
+            ),
+            Some(c) => c,
+        },
+    }
 }
 
 fn read_stdin() -> io::Result<Vec<u8>> {
@@ -54,59 +87,28 @@ fn read_stdin() -> io::Result<Vec<u8>> {
 }
 
 fn main() -> codecs::Result<()> {
-    let mut args = env::args().skip(1);
-    let mut transformations = Vec::new();
+    let args = Options::parse();
 
-    let mode = match args.next() {
-        Some(m) => {
-            if m == "-e" || m == "--encode" {
-                Mode::Encode
-            } else if m == "-d" || m == "--decode" {
-                Mode::Decode
-            } else if m == "-h" || m == "--help" {
-                eprintln!("Usage:");
-                eprintln!(
-                    "  {} [[-e | -d] CODECS] [INPUT]\n",
-                    env::args().next().unwrap()
-                );
-                eprintln!("Options:");
-                eprintln!("  -e, --encode CODECS: encode input with the specified codecs (comma separated)");
-                eprintln!("  -d, --decode CODECS: decode input with the specified codecs (comma separated)");
-                eprintln!("  -h, --help: show this message and exit");
-                eprintln!("  -l, --list: list available codecs\n");
-                eprintln!("By default, if neither -e or -d is specified, 'auto-recurse' codec in decode mode is used");
-                eprintln!("If INPUT is not specified, it is read from STDIN");
-
-                return Ok(());
-            } else if m == "-l" || m == "--list" {
-                eprintln!("Available plugins:");
-                for p in get_available_plugins() {
-                    eprintln!("  {}: {}", p.name(), p.description());
-                }
-                return Ok(());
-            } else {
-                let msg = format!("Unrecognized argument: {:?}", m);
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, msg).into());
-            }
+    if args.list {
+        println!("Available plugins:");
+        for p in get_available_plugins() {
+            println!("  {}: {}", p.name(), p.description());
         }
-        None => Mode::Decode,
-    };
-
-    if let Some(trans) = args.next() {
-        for t in trans.split(',') {
-            let codec =
-                get_codec_by_prefix(t).ok_or_else(|| CodecError::InvalidPluginPrefix(t.into()))?;
-            transformations.push(codec);
-        }
-    } else {
-        let auto_recurse_codec = codecs::auto::AutoRecurseCodec;
-        transformations.push(
-            get_codec_by_prefix(auto_recurse_codec.name())
-                .expect("AutoRecurseCodec should be registered"),
-        );
+        return Ok(());
     }
 
-    let mut input = match args.next() {
+    let mut transformations: Vec<_> = args
+        .codecs
+        .iter()
+        .map(|na| get_codec_by_prefix(na))
+        .collect();
+
+    if transformations.is_empty() {
+        let auto_recurse_codec = codecs::auto::AutoRecurseCodec;
+        transformations.push(auto_recurse_codec.build("").unwrap());
+    }
+
+    let mut input = match args.input {
         None => read_stdin()?,
         Some(ref p) => {
             if p == "-" {
@@ -118,7 +120,7 @@ fn main() -> codecs::Result<()> {
     };
 
     for t in &transformations[..] {
-        let output = match mode {
+        let output = match args.mode {
             Mode::Encode => {
                 eprintln!("Encoding with {} ({})", t.name(), t.description());
                 t.encode(&input[..])?

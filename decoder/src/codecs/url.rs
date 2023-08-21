@@ -1,6 +1,6 @@
 use crate::codecs::{Codec, CodecError, Result};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct UrlCodec;
 
 impl Codec for UrlCodec {
@@ -90,6 +90,11 @@ impl Codec for UrlCodec {
         }
 
         Ok(())
+    }
+
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let _ = args;
+        Some(Box::new(Self) as super::Plugin)
     }
 
     fn decoded_size_hint(&self, size: usize) -> usize {

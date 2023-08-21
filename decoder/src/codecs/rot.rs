@@ -2,6 +2,7 @@ use crate::codecs::{Codec, Result};
 
 const DEFAULT_KEY: u8 = 13;
 
+#[derive(Clone)]
 pub struct RotCodec(u8);
 
 impl Default for RotCodec {
@@ -45,5 +46,10 @@ impl Codec for RotCodec {
         }
 
         Ok(())
+    }
+
+    fn build(&self, args: &str) -> Option<super::Plugin> {
+        let key: u8 = args.parse().unwrap_or(DEFAULT_KEY);
+        Some(Box::new(Self(key)) as super::Plugin)
     }
 }
