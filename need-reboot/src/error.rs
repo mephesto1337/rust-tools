@@ -32,6 +32,9 @@ pub enum Error {
 
     /// Missing field
     MissingField(String),
+
+    /// Issue with version
+    Version(semver::Error),
 }
 
 impl From<io::Error> for Error {
@@ -74,6 +77,12 @@ impl From<ParseIntError> for Error {
     }
 }
 
+impl From<semver::Error> for Error {
+    fn from(e: semver::Error) -> Self {
+        Self::Version(e)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -99,6 +108,7 @@ impl fmt::Display for Error {
             }
             Self::Integer(ref e) => fmt::Display::fmt(e, f),
             Self::MissingField(ref fieldname) => write!(f, "Missing field {}", fieldname),
+            Self::Version(ref v) => fmt::Display::fmt(v, f),
         }
     }
 }

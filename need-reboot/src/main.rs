@@ -3,7 +3,6 @@ use std::cmp::Ordering;
 mod error;
 mod pacman;
 mod uname;
-pub mod version;
 
 pub use crate::error::{Error, Result};
 
@@ -26,9 +25,9 @@ fn main() -> Result<()> {
         }
     };
 
-    let running_version: version::Version = uts.release.parse()?;
+    let running_version: semver::Version = uts.release.strip_suffix(suffix).unwrap().parse()?;
 
-    match running_version.partial_cmp_ignore_tag(&linux_pkg.version) {
+    match running_version.partial_cmp(&linux_pkg.version) {
         Some(Ordering::Less) => {
             println!(
                 "REBOOT (curr={} < last={})",

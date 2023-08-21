@@ -2,8 +2,8 @@ use std::fmt;
 use std::process;
 use std::str::FromStr;
 
-use crate::version::Version;
 use crate::{Error, Result};
+use semver::Version;
 
 pub struct Pacman {
     _unused: u8,
