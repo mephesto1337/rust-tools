@@ -15,6 +15,6 @@ for module in $(find . -maxdepth 2 -mindepth 2 -type f -name Cargo.toml); do
 done
 
 sudo cp "${BINS[@]}" "${INSTALL_DIR}"
-sudo setcap cap_sys_ptrace=eip "${INSTALL_DIR }/need-restart" || true
+sudo setcap cap_sys_ptrace=eip "${INSTALL_DIR}/need-restart" || true
 
 exit $?
