@@ -1,9 +1,11 @@
-use std::ffi::FromBytesWithNulError;
-use std::fmt;
-use std::io;
-use std::num::ParseIntError;
-use std::process::{ExitStatus, Output};
-use std::str::Utf8Error;
+use core::ffi::FromBytesUntilNulError;
+
+use std::{
+    fmt, io,
+    num::ParseIntError,
+    process::{ExitStatus, Output},
+    str::Utf8Error,
+};
 
 pub type Result<T> = ::std::result::Result<T, Error>;
 
@@ -16,7 +18,7 @@ pub enum Error {
     Encoding(Utf8Error),
 
     /// C-String error
-    CString(FromBytesWithNulError),
+    CString(FromBytesUntilNulError),
 
     /// Cannot parse package
     PackageFormat(String),
@@ -49,8 +51,8 @@ impl From<Utf8Error> for Error {
     }
 }
 
-impl From<FromBytesWithNulError> for Error {
-    fn from(e: FromBytesWithNulError) -> Self {
+impl From<FromBytesUntilNulError> for Error {
+    fn from(e: FromBytesUntilNulError) -> Self {
         Self::CString(e)
     }
 }

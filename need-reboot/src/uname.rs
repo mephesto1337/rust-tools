@@ -1,5 +1,4 @@
-use std::io;
-use std::mem;
+use std::{ffi::CStr, io, mem};
 
 use crate::Result;
 
@@ -12,7 +11,7 @@ mod c {
 }
 
 fn c_uname() -> io::Result<c::utsname> {
-    let mut buf: mem::MaybeUninit<c::utsname> = mem::MaybeUninit::zeroed();
+    let mut buf = mem::MaybeUninit::zeroed();
 
     let ret = unsafe { c::uname(buf.as_mut_ptr()) };
     if ret == 0 {
@@ -32,17 +31,12 @@ pub struct UtsName {
 }
 
 fn get_string(c_raw_string: &[i8]) -> Result<String> {
-    let raw_string: &[u8] = unsafe { std::mem::transmute(c_raw_string) };
-    let null_byte_idx = raw_string
-        .iter()
-        .enumerate()
-        .find_map(|(i, b)| if *b == 0 { Some(i + 1) } else { None })
-        .unwrap_or(raw_string.len());
-    Ok(
-        std::ffi::CStr::from_bytes_with_nul(&raw_string[..null_byte_idx])?
-            .to_str()?
-            .to_owned(),
-    )
+    let raw_string: &[u8] =
+        unsafe { std::slice::from_raw_parts(c_raw_string.as_ptr().cast(), c_raw_string.len()) };
+
+    let s = CStr::from_bytes_until_nul(raw_string)?;
+
+    Ok(s.to_str()?.to_owned())
 }
 
 impl UtsName {

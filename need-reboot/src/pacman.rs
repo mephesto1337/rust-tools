@@ -1,12 +1,10 @@
-use std::fmt;
-use std::process;
-use std::str::FromStr;
+use std::{fmt, process, str::FromStr};
 
 use crate::{Error, Result};
 use semver::Version;
 
 pub struct Pacman {
-    _unused: u8,
+    _unused: (),
 }
 
 #[derive(Debug)]
@@ -45,7 +43,7 @@ impl FromStr for Package {
 
 impl Pacman {
     pub fn new() -> Self {
-        Self { _unused: 0 }
+        Self { _unused: () }
     }
 
     pub fn query(&self, name: impl AsRef<str>) -> Result<Option<Package>> {
