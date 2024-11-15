@@ -1,5 +1,6 @@
 use std::{
     fs,
+    os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
 };
 
@@ -23,6 +24,9 @@ pub struct Process {
     /// Process Identifier
     pub pid: u64,
 
+    /// Process owner
+    pub uid: u32,
+
     /// File being executed. Index into `Process.files`
     executable_idx: usize,
 
@@ -33,6 +37,8 @@ pub struct Process {
 impl Process {
     pub fn new(pid: u64) -> Result<Process> {
         let maps_file = PathBuf::from("/proc").join(format!("{}", pid)).join("maps");
+
+        let uid = fs::metadata(maps_file.parent().unwrap())?.uid();
         let maps = fs::read_to_string(&maps_file).map_err(|e| {
             if e.kind() == std::io::ErrorKind::NotFound {
                 Error::NonExistantProcess(pid)
@@ -79,6 +85,7 @@ impl Process {
 
         Ok(Self {
             pid,
+            uid,
             executable_idx,
             files,
         })

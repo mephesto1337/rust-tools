@@ -16,6 +16,9 @@ pub enum Error {
 
     /// Invalid CLI argument
     InvalidArgument(String),
+
+    /// getpwuid_r error
+    GetPwuid(io::Error),
 }
 
 impl From<io::Error> for Error {
@@ -37,6 +40,7 @@ impl fmt::Display for Error {
             Self::NoExecutableFile(pid) => write!(f, "No executable file for pid {}", pid),
             Self::IO(ref e) => fmt::Display::fmt(e, f),
             Self::InvalidArgument(ref arg) => write!(f, "Invalid command line argument {:?}", arg),
+            Self::GetPwuid(ref e) => write!(f, "Error with getpwuid_r: {e}"),
         }
     }
 }
