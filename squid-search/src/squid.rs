@@ -19,20 +19,16 @@ impl<'a> SquidAccessEntry<'a> {
 
         let mut parts = s.split_ascii_whitespace();
 
-        let time_str = parts.next().ok_or_else(|| Error::MissingField("time"))?;
+        let time_str = parts.next().ok_or(Error::MissingField("time"))?;
         let time = time_str.split('.').next().unwrap().parse()?;
 
-        let _elapsed = parts.next().ok_or_else(|| Error::MissingField("elapsed"))?;
-        let _remotehost = parts
-            .next()
-            .ok_or_else(|| Error::MissingField("remotehost"))?;
-        let _codestatus = parts
-            .next()
-            .ok_or_else(|| Error::MissingField("code/status"))?;
-        let _bytes = parts.next().ok_or_else(|| Error::MissingField("bytes"))?;
+        let _elapsed = parts.next().ok_or(Error::MissingField("elapsed"))?;
+        let _remotehost = parts.next().ok_or(Error::MissingField("remotehost"))?;
+        let _codestatus = parts.next().ok_or(Error::MissingField("code/status"))?;
+        let _bytes = parts.next().ok_or(Error::MissingField("bytes"))?;
 
-        let method = parts.next().ok_or_else(|| Error::MissingField("method"))?;
-        let url = parts.next().ok_or_else(|| Error::MissingField("url"))?;
+        let method = parts.next().ok_or(Error::MissingField("method"))?;
+        let url = parts.next().ok_or(Error::MissingField("url"))?;
 
         Ok(Self { time, method, url })
     }

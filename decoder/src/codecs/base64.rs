@@ -166,18 +166,18 @@ impl Codec for Base64AutoCodec {
     }
 
     fn encode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
-        let std = Base64StandardCodec::default();
+        let std = Base64StandardCodec;
         std.encode_into(data, output)
     }
 
     fn decode_into(&self, data: &[u8], output: &mut Vec<u8>) -> Result<()> {
-        const STD_SPECIALS: &[u8] = &[b'/', b'=', b'+'];
+        const STD_SPECIALS: &[u8] = b"/=+";
 
         if STD_SPECIALS.iter().any(|s| data.contains(s)) {
-            let std = Base64StandardCodec::default();
+            let std = Base64StandardCodec;
             std.decode_into(data, output)
         } else {
-            let url = Base64UrlCodec::default();
+            let url = Base64UrlCodec;
             url.decode_into(data, output)
         }
     }

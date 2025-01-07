@@ -70,18 +70,17 @@ impl Process {
             }
         }
 
-        let executable_idx = files
-            .iter()
-            .enumerate()
-            .find_map(|(idx, path_state)| {
+        let executable_idx = Option::ok_or_else(
+            files.iter().enumerate().find_map(|(idx, path_state)| {
                 let (path, _) = path_state;
                 if path == &executable {
                     Some(idx)
                 } else {
                     None
                 }
-            })
-            .ok_or_else(|| Error::NoExecutableFile(pid))?;
+            }),
+            || Error::NoExecutableFile(pid),
+        )?;
 
         Ok(Self {
             pid,
