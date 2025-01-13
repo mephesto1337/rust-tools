@@ -20,7 +20,11 @@ impl Apt {
 
 impl PackageManager for Apt {
     fn query(&self, name: &str) -> Result<Package> {
-        let output = process::Command::new("dpkg").arg("-l").arg(name).output()?;
+        let output = process::Command::new("dpkg-query")
+            .arg("--list")
+            .arg("--")
+            .arg(name)
+            .output()?;
         if !output.status.success() {
             return Err(output.into());
         }
@@ -42,27 +46,26 @@ impl PackageManager for Apt {
             let Some(version) = parts.next().map(Into::<Version>::into) else {
                 continue;
             };
-            if last_pkg.is_none() {
-                last_pkg = Some(Package {
-                    name: pkgname.into(),
-                    version,
-                });
-                continue;
-            }
-            if let Some(p) = last_pkg.as_ref() {
-                let res = p.version.partial_cmp(&version);
-                if res == Some(Ordering::Less) {
+
+            match last_pkg {
+                None => {
                     last_pkg = Some(Package {
                         name: pkgname.into(),
                         version,
                     });
                 }
+                Some(ref lp) => {
+                    if let Some(Ordering::Less) = lp.version.partial_cmp(&version) {
+                        last_pkg = Some(Package {
+                            name: pkgname.into(),
+                            version,
+                        });
+                    }
+                }
             }
         }
-        match last_pkg {
-            Some(p) => Ok(p),
-            None => Err(Error::PackageFormat("No version specified".into())),
-        }
+
+        last_pkg.ok_or_else(|| Error::PackageFormat("No version specified".into()))
     }
 
     fn kernel_package(&self, uts: &UtsName) -> String {
