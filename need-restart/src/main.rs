@@ -16,13 +16,13 @@ struct Options {
 fn get_username(uid: u32) -> Result<String> {
     let mut pwd = MaybeUninit::uninit();
     let mut result = ptr::null_mut();
-    let mut buf = Vec::with_capacity(1024);
+    let mut buf = [0; 1024];
     let ret = unsafe {
         libc::getpwuid_r(
             uid,
             pwd.as_mut_ptr(),
             buf.as_mut_ptr(),
-            buf.capacity(),
+            buf.len(),
             ptr::addr_of_mut!(result),
         )
     };
