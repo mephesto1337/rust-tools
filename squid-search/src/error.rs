@@ -12,9 +12,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::MissingField(s) => write!(f, "Field {} is missing", *s),
-            Error::ParseInt(ref e) => fmt::Display::fmt(e, f),
-            Error::Io(ref e) => fmt::Display::fmt(e, f),
-            Error::InvalidTimeSuffix(ref s) => write!(f, "Invalid time suffix {:?}", s),
+            Error::ParseInt(e) => fmt::Display::fmt(e, f),
+            Error::Io(e) => fmt::Display::fmt(e, f),
+            Error::InvalidTimeSuffix(s) => write!(f, "Invalid time suffix {:?}", s),
         }
     }
 }

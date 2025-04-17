@@ -29,7 +29,7 @@ impl From<io::Error> for Error {
 
 impl Error {
     pub fn is_not_found(&self) -> bool {
-        matches!(self, Self::IO(ref e) if e.kind() == io::ErrorKind::NotFound)
+        matches!(self, Self::IO(e) if e.kind() == io::ErrorKind::NotFound)
     }
 }
 
@@ -38,9 +38,9 @@ impl fmt::Display for Error {
         match self {
             Self::NonExistantProcess(pid) => write!(f, "Non existing pid {}", pid),
             Self::NoExecutableFile(pid) => write!(f, "No executable file for pid {}", pid),
-            Self::IO(ref e) => fmt::Display::fmt(e, f),
-            Self::InvalidArgument(ref arg) => write!(f, "Invalid command line argument {:?}", arg),
-            Self::GetPwuid(ref e) => write!(f, "Error with getpwuid_r: {e}"),
+            Self::IO(e) => fmt::Display::fmt(e, f),
+            Self::InvalidArgument(arg) => write!(f, "Invalid command line argument {:?}", arg),
+            Self::GetPwuid(e) => write!(f, "Error with getpwuid_r: {e}"),
         }
     }
 }

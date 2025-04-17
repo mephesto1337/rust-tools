@@ -27,13 +27,13 @@ pub enum CodecError {
 impl fmt::Display for CodecError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CodecError::IO(ref e) => fmt::Display::fmt(e, f),
-            CodecError::Base64(ref e) => fmt::Display::fmt(e, f),
-            CodecError::InvalidHexDigit(ref b) => {
+            CodecError::IO(e) => fmt::Display::fmt(e, f),
+            CodecError::Base64(e) => fmt::Display::fmt(e, f),
+            CodecError::InvalidHexDigit(b) => {
                 write!(f, "0x{:02x} is not a valid hexadecimal digit", b)
             }
-            CodecError::UTF8(ref e) => fmt::Display::fmt(e, f),
-            CodecError::NonAsciiChar(ref b) => {
+            CodecError::UTF8(e) => fmt::Display::fmt(e, f),
+            CodecError::NonAsciiChar(b) => {
                 write!(f, "Encounter non-ascii character 0x{:02x}", b)
             }
             CodecError::NoCodecAvailable => f.write_str("Cannot find a suitable codec"),

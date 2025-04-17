@@ -82,15 +82,12 @@ impl From<ParseIntError> for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::IO(ref e) => fmt::Display::fmt(e, f),
-            Self::Encoding(ref e) => fmt::Display::fmt(e, f),
-            Self::CString(ref e) => fmt::Display::fmt(e, f),
-            Self::PackageFormat(ref pf) => write!(f, "Cannot parse package from {:?}", pf),
-            Self::PackageNotFound(ref name) => write!(f, "Cannot find package {name:?}"),
-            Self::CalledProcess {
-                ref status,
-                ref error,
-            } => {
+            Self::IO(e) => fmt::Display::fmt(e, f),
+            Self::Encoding(e) => fmt::Display::fmt(e, f),
+            Self::CString(e) => fmt::Display::fmt(e, f),
+            Self::PackageFormat(pf) => write!(f, "Cannot parse package from {:?}", pf),
+            Self::PackageNotFound(name) => write!(f, "Cannot find package {name:?}"),
+            Self::CalledProcess { status, error } => {
                 if let Some(code) = status.code() {
                     if let Some(msg) = error {
                         write!(f, "Process exited with code {}: {}", code, msg)
@@ -103,8 +100,8 @@ impl fmt::Display for Error {
                     f.write_str("Process exited with error")
                 }
             }
-            Self::Integer(ref e) => fmt::Display::fmt(e, f),
-            Self::MissingField(ref fieldname) => write!(f, "Missing field {}", fieldname),
+            Self::Integer(e) => fmt::Display::fmt(e, f),
+            Self::MissingField(fieldname) => write!(f, "Missing field {}", fieldname),
         }
     }
 }
