@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::{ffi::CStr, io, mem::MaybeUninit, ptr};
 
 mod error;
@@ -6,20 +7,10 @@ mod process;
 pub use error::{Error, Result};
 use process::Process;
 
-fn usage() {
-    let prog = std::path::PathBuf::from(std::env::args().next().unwrap())
-        .file_name()
-        .and_then(|os| os.to_str())
-        .map(|s| s.to_string())
-        .unwrap();
-
-    println!("Usages:");
-    println!("  {} -h | --help", &prog);
-    println!("  {} [-q | --quiet]", &prog);
-    println!();
-    println!("Options:");
-    println!("  -h, --help  : displays this message and exits.");
-    println!("  -q, --quiet : enables quiet mode.");
+#[derive(Parser, Debug)]
+struct Options {
+    #[arg(short = 'q', long = "quiet")]
+    quiet: bool,
 }
 
 fn get_username(uid: u32) -> Result<String> {
@@ -54,27 +45,16 @@ fn get_username(uid: u32) -> Result<String> {
     }
 }
 
-fn err_main() -> Result<()> {
-    let mut quiet = false;
+fn main() -> Result<()> {
+    let options = Options::parse();
 
     // Just a plain vector, as there should not be many entries
     let mut usernames: Vec<(u32, String)> = Vec::new();
 
-    if let Some(first_arg) = std::env::args().nth(1) {
-        if first_arg == "-q" || first_arg == "--quiet" {
-            quiet = true;
-        } else if first_arg == "-h" || first_arg == "--help" {
-            usage();
-            return Ok(());
-        } else {
-            usage();
-            return Err(Error::InvalidArgument(first_arg));
-        }
-    }
     let processes = Process::all()?;
     for p in &processes {
         if let Some(deleted_file) = p.deleted_file() {
-            if !quiet {
+            if !options.quiet {
                 let username = match usernames
                     .iter()
                     .find_map(|(uid, username)| (uid == &p.uid).then_some(username.as_str()))
@@ -100,14 +80,4 @@ fn err_main() -> Result<()> {
     }
 
     Ok(())
-}
-
-fn main() -> ! {
-    let code = if let Err(e) = err_main() {
-        eprintln!("ERROR: {}", e);
-        1
-    } else {
-        0
-    };
-    std::process::exit(code);
 }
