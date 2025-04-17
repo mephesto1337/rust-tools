@@ -7,7 +7,22 @@ mod c {
     #![allow(non_camel_case_types)]
     #![allow(non_snake_case)]
 
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+    const MEMBER_SIZE: usize = 65;
+
+    #[derive(Debug, Copy, Clone)]
+    #[repr(C)]
+    pub(super) struct utsname {
+        pub sysname: [i8; MEMBER_SIZE],
+        pub nodename: [i8; MEMBER_SIZE],
+        pub release: [i8; MEMBER_SIZE],
+        pub version: [i8; MEMBER_SIZE],
+        pub machine: [i8; MEMBER_SIZE],
+        pub domainname: [i8; MEMBER_SIZE],
+    }
+
+    unsafe extern "C" {
+        pub unsafe fn uname(buf: *mut utsname) -> i32;
+    }
 }
 
 fn c_uname() -> io::Result<c::utsname> {
