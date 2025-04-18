@@ -1,5 +1,4 @@
-use std::fmt;
-use std::io;
+use std::{ffi, fmt, io};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -19,11 +18,26 @@ pub enum Error {
 
     /// getpwuid_r error
     GetPwuid(io::Error),
+
+    /// getpwname_r error
+    GetPwname(io::Error),
+
+    /// Invalid C-String
+    InvalidCString(ffi::NulError),
+
+    /// Unknown username
+    UnknownUser(String),
 }
 
 impl From<io::Error> for Error {
     fn from(e: io::Error) -> Self {
         Self::IO(e)
+    }
+}
+
+impl From<ffi::NulError> for Error {
+    fn from(e: ffi::NulError) -> Self {
+        Self::InvalidCString(e)
     }
 }
 
@@ -41,6 +55,9 @@ impl fmt::Display for Error {
             Self::IO(e) => fmt::Display::fmt(e, f),
             Self::InvalidArgument(arg) => write!(f, "Invalid command line argument {:?}", arg),
             Self::GetPwuid(e) => write!(f, "Error with getpwuid_r: {e}"),
+            Self::GetPwname(e) => write!(f, "Error with getpwname_r: {e}"),
+            Self::InvalidCString(e) => write!(f, "Invalid C String: {e}"),
+            Self::UnknownUser(name) => write!(f, "Unknown user {name:?}"),
         }
     }
 }
