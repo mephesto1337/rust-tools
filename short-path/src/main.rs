@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::{
     env,
     ffi::{OsStr, OsString},
@@ -6,21 +7,32 @@ use std::{
     path::{Path, PathBuf},
 };
 
-fn get_shortest<'p, F>(collection: &'_ [OsString], prefix: &'p [u8], match_prefix: F) -> &'p [u8]
+fn get_shortest<'p, F>(
+    collection: &'_ [OsString],
+    prefix: &'p [u8],
+    match_prefix: F,
+) -> Option<&'p [u8]>
 where
     F: Fn(&[u8], &[u8]) -> bool,
 {
-    for size in 1..prefix.len() {
-        if collection
-            .iter()
-            .filter(|e| match_prefix(e.as_encoded_bytes(), &prefix[..size]))
-            .count()
-            == 1
-        {
-            return &prefix[..size];
+    'next_size: for size in 1..prefix.len() {
+        let cur_prefix = &prefix[..size];
+        let mut matches = 0usize;
+        for entry in collection {
+            if match_prefix(entry.as_encoded_bytes(), cur_prefix) {
+                matches += 1;
+                if matches > 1 {
+                    continue 'next_size;
+                }
+            }
+        }
+        match matches {
+            0 => return None,
+            1 => return Some(cur_prefix),
+            _ => unreachable!("Should have continued 7 lines above"),
         }
     }
-    prefix
+    Some(prefix)
 }
 
 fn dir_entries<P: AsRef<Path>>(path: P) -> io::Result<Vec<OsString>> {
@@ -31,22 +43,25 @@ fn dir_entries<P: AsRef<Path>>(path: P) -> io::Result<Vec<OsString>> {
         .collect::<Vec<_>>())
 }
 
+#[derive(Parser, Debug)]
+struct Options {
+    #[arg(
+        short = 'i',
+        long = "ignore-case",
+        help = "Ignore case when comparing directories prefix",
+        default_value_t = false
+    )]
+    ignore_case: bool,
+}
+
 fn main() -> io::Result<()> {
-    let mut ignore_case = false;
+    let options = Options::parse();
 
     let cwd = env::current_dir()?;
     assert!(
         cwd.is_absolute(),
         "Current working directory is not absolute?: {cwd:?}"
     );
-
-    if let Some(first) = env::args().nth(1) {
-        if first == "-i" || first == "--ignore-case" {
-            ignore_case = true;
-        } else {
-            eprintln!("Invalid argument {:?}", first);
-        }
-    }
 
     let (Some(current), Some(parents)) = (cwd.file_name(), cwd.parent()) else {
         println!("/");
@@ -65,7 +80,7 @@ fn main() -> io::Result<()> {
             }
         };
         let entries = dir_entries(component.parent().unwrap())?;
-        let shortest = if ignore_case {
+        let shortest = if options.ignore_case {
             get_shortest(&entries, prefix.as_encoded_bytes(), |entry, p| {
                 if entry.len() < p.len() {
                     false
@@ -78,14 +93,18 @@ fn main() -> io::Result<()> {
                 entry.starts_with(p)
             })
         };
-        path = PathBuf::from(OsStr::from_bytes(shortest)).join(path);
+        if let Some(shortest) = shortest {
+            path = PathBuf::from(OsStr::from_bytes(shortest)).join(path);
+        } else {
+            path = PathBuf::from(prefix).join(path);
+        }
     }
 
     path = path.join(current);
 
     if let Ok(home) = env::var("HOME") {
         if cwd.starts_with(&home) {
-            let skip = PathBuf::from(home).components().count();
+            let skip = Path::new(&home).components().count();
             let mut new_path = PathBuf::from("~");
             for part in path.iter().skip(skip) {
                 new_path = new_path.join(part);
